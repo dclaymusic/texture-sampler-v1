@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Texture + Sound Trigger</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: white;
+      display: flex;
+      overflow: hidden;
+    }
+
+    #left, #right {
+      width: 50vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    #left {
+      background-color: white;
+    }
+
+    #right {
+      background-color: black;
+    }
+
+    .overlay-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 10;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="left"></div>
+<div id="right"></div>
+
+<script>
+  const leftContainer = document.getElementById("left");
+  const rightContainer = document.getElementById("right");
+
+  const keyToMediaMap = {
+    "q": { side: "left", image: "texture-01.png", sound: "sound-01.mp3" },
+    "w": { side: "left", image: "texture-02.png", sound: "sound-02.mp3" },
+    "e": { side: "left", image: "texture-03.png", sound: "sound-03.mp3" },
+    "a": { side: "left", image: "texture-04.png", sound: "sound-04.mp3" },
+    "s": { side: "left", image: "texture-05.png", sound: "sound-05.mp3" },
+    "d": { side: "left", image: "texture-06.png", sound: "sound-06.mp3" },
+    "z": { side: "left", image: "texture-07.png", sound: "sound-07.mp3" },
+    "x": { side: "left", image: "texture-08.png", sound: "sound-08.mp3" },
+    "c": { side: "left", image: "texture-09.png", sound: "sound-09.mp3" },
+
+    "i": { side: "right", image: "texture-10.png", sound: "sound-10.mp3" },
+    "o": { side: "right", image: "texture-11.png", sound: "sound-11.mp3" },
+    "p": { side: "right", image: "texture-12.png", sound: "sound-12.mp3" },
+    "k": { side: "right", image: "texture-13.png", sound: "sound-13.mp3" },
+    "l": { side: "right", image: "texture-14.png", sound: "sound-14.mp3" },
+    ";": { side: "right", image: "texture-15.png", sound: "sound-15.mp3" },
+    "m": { side: "right", image: "texture-16.png", sound: "sound-16.mp3" },
+    ",": { side: "right", image: "texture-17.mp3", sound: "sound-17.mp3" },
+    ".": { side: "right", image: "texture-18.png", sound: "sound-18.mp3" },
+  };
+
+  const activeKeys = new Set();
+  const activeAudio = {};
+
+  function updateOverlays() {
+    leftContainer.innerHTML = "";
+    rightContainer.innerHTML = "";
+
+    activeKeys.forEach((key) => {
+      const mapping = keyToMediaMap[key];
+      if (!mapping) return;
+
+      // Display image
+      const img = document.createElement("img");
+      img.src = mapping.image;
+      img.className = "overlay-image";
+      if (mapping.side === "left") {
+        leftContainer.appendChild(img);
+      } else {
+        rightContainer.appendChild(img);
+      }
+    });
+  }
+
+  function startSound(key) {
+    const mapping = keyToMediaMap[key];
+    if (!mapping || activeAudio[key]) return;
+
+    const audio = new Audio(mapping.sound);
+    audio.loop = true;
+    audio.play().catch((err) => console.warn("Audio play error:", err));
+    activeAudio[key] = audio;
+  }
+
+  function stopSound(key) {
+    const audio = activeAudio[key];
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      delete activeAudio[key];
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    if (keyToMediaMap[key] && !activeKeys.has(key)) {
+      activeKeys.add(key);
+      updateOverlays();
+      startSound(key);
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    const key = e.key.toLowerCase();
+    if (activeKeys.delete(key)) {
+      updateOverlays();
+      stopSound(key);
+    }
+  });
+</script>
+
+</body>
+</html>
